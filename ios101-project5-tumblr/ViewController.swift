@@ -5,13 +5,45 @@
 
 import UIKit
 import Nuke
+import NukeExtensions
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return posts.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        // Create the cell
+        
+        // Configure the cell (i.e. update UI elements like labels, image views, etc.)
+        // Get the row where the cell will be placed using the `row` property on the passed in `indexPath` (i.e., `indexPath.row`)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "PostCell", for: indexPath) as! PostCell
+        
+        let post = posts[indexPath.row]
+        
+        if let photo = post.photos.first {
+            let url = photo.originalSize.url
+            // Load the photo in the image view via NukeExtensions library...
+            NukeExtensions.loadImage(with: url, into: cell.postImageView)
+        }
+        
+        cell.captionLabel?.text = post.summary
+        
+        // Return the cell for use in the respective table view row
+        return cell
+    }
+    
 
 
+    @IBOutlet weak var tableView: UITableView!
+    
+    private var posts: [Post] = []
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        tableView.dataSource = self
         
         fetchPosts()
     }
@@ -42,7 +74,8 @@ class ViewController: UIViewController {
                 DispatchQueue.main.async { [weak self] in
 
                     let posts = blog.response.posts
-
+                    self?.posts = posts
+                    self?.tableView.reloadData()
 
                     print("✅ We got \(posts.count) posts!")
                     for post in posts {
